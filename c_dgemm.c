@@ -4,7 +4,7 @@
 #include <errno.h>
 
 // multiply matrix
-void dgemm_otimizada(size_t n, double *A, double *B, double *C)
+void dgemm_c(size_t n, double *A, double *B, double *C)
 {
     for (size_t i = 0; i < n; i++)
     {
@@ -26,7 +26,7 @@ void dgemm_otimizada(size_t n, double *A, double *B, double *C)
 }
 
 // create random matrix with values between 0 and 1
-void make_rand_matrix(size_t n, double *A)
+void create_rand_matrix(size_t n, double *A)
 {
     for (size_t i = 0; i < n * n; i++)
     {
@@ -53,8 +53,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // error checking for command line argument
     char *endptr = NULL;
     errno = 0;
+
+    // parse the matrix size from command line argument
+    // strtoul is used to convert string to unsigned long, and it also provides error checking
     unsigned long parsed_n = strtoul(argv[1], &endptr, 10);
 
     if (errno != 0 || endptr == argv[1] || *endptr != '\0' || parsed_n == 0)
@@ -63,12 +67,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    printf("Tamanho da matriz: %lu x %lu\n", parsed_n, parsed_n);
+
+    // cast parsed_n to size_t, which is the type used for matrix dimensions
     size_t n = (size_t)parsed_n;
 
+    // allocate memory for matrices A, B, and C
     double *A = (double *)malloc(n * n * sizeof(double));
     double *B = (double *)malloc(n * n * sizeof(double));
     double *C = (double *)malloc(n * n * sizeof(double));
 
+    // check if memory allocation was successful
     if (!A || !B || !C)
     {
         printf("Falha ao alocar memória para matrizes.\n");
@@ -82,20 +91,20 @@ int main(int argc, char *argv[])
     }
 
     // start the random matrices
-    make_rand_matrix(n, A);
-    make_rand_matrix(n, B);
+    create_rand_matrix(n, A);
+    create_rand_matrix(n, B);
 
     // result matrix
     initialize_matrix_with_zeros(n, C);
 
     // time the matrix multiply
     clock_t start = clock();
-    dgemm_otimizada(n, A, B, C);
+    dgemm_c(n, A, B, C);
     clock_t stop = clock();
 
     // get the time it took
     double elapsed_time = (double)(stop - start) / CLOCKS_PER_SEC * 1000;
-    printf("Tempo total para dgemm_otimizada = %.2f ms\n", elapsed_time);
+    printf("Tempo total para dgemm_c = %.2f ms\n", elapsed_time);
 
     // free allocated memory
     free(A);
@@ -106,7 +115,7 @@ int main(int argc, char *argv[])
 }
 
 // instruction to compile:
-// gcc -O0 -o c_degeem c_degeem.c
-// gcc -O1 -o c_degeem c_degeem.c
-// gcc -O2 -o c_degeem c_degeem.c
-// gcc -O3 -o c_degeem c_degeem.c
+// gcc -O0 -o c_dgemm c_dgemm.c
+// gcc -O1 -o c_dgemm c_dgemm.c
+// gcc -O2 -o c_dgemm c_dgemm.c
+// gcc -O3 -o c_dgemm c_dgemm.c
